@@ -1,0 +1,106 @@
+# .github/workflows/python-package.yml
+
+name: Python Package CI/CD
+
+# Controls when the workflow will run
+on:
+  push:
+    branches: ["main"] # Or your default branch (e.g., master)
+    tags: ["v*.*.*"] # Run on tags starting with 'v' (e.g., v1.0.0)
+  pull_request:
+    branches: ["main"] # Or your default branch
+  workflow_dispatch: # Allows manual triggering from GitHub UI
+
+# Set permissions for the GITHUB_TOKEN for publishing using OIDC
+permissions:
+  contents: read # Needed to check out the code
+  id-token: write # Needed for OIDC token generation for PyPI
+
+jobs:
+  build_and_test:
+    name: Build & Test Python ${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false # Don't cancel other jobs in the matrix if one fails
+      matrix:
+        os: [ubuntu-latest] # Start with ubuntu, add windows-latest, macos-latest if needed
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"] # Test relevant Python versions
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip' # Cache pip dependencies
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Install package with dev extras OR use requirements-dev.txt
+          pip install -e .[dev]
+          # OR If using requirements-dev.txt:
+          # pip install -r requirements-dev.txt
+          # pip install -e .
+
+      - name: Lint with Pylint
+        run: |
+          pylint jrag tests --rcfile=pyproject.toml
+
+      - name: Check formatting with Black
+        run: |
+          black --check . --config=pyproject.toml
+
+      - name: Check import sorting with isort
+        run: |
+          isort --check-only . --settings-path=pyproject.toml
+
+      - name: Run tests with pytest
+        run: |
+          pytest # Pytest should pick up config from pyproject.toml (including coverage)
+
+  publish:
+    name: Publish package to PyPI
+    # Run only:
+    # 1. On pushes to tags matching v*.*.*
+    # 2. If the 'build_and_test' job succeeded
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: build_and_test # Ensure tests pass before publishing
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi # Define deployment environment in GitHub settings (optional but good practice)
+      url: https://pypi.org/p/json-to-rag-string # Link to your PyPI project page
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python for build
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10' # Use a specific Python version for building
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+
+      - name: Build package
+        run: python -m build
+
+      - name: Publish package to PyPI
+        # Uses PyPI's Trusted Publishing via OIDC
+        uses: pypa/gh-action-pypi-publish@release/v1
+        # No API token needed here if Trusted Publishing is configured on PyPI
+        # The action automatically gets a short-lived OIDC token
+
+      # Optional: Create GitHub Release based on the tag
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          # This uses the tag message or commit messages for the release notes
+          # You might want to customize this further
+          generateReleaseNotes: true
+          token: ${{ secrets.GITHUB_TOKEN }} # Built-in token

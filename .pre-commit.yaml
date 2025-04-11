@@ -1,0 +1,55 @@
+# .pre-commit-config.yaml
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+
+repos:
+  # Standard pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0 # Use the latest stable tag
+    hooks:
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-added-large-files # Prevent accidentally committing large files
+
+  # Black for code formatting
+  - repo: https://github.com/psf/black
+    rev: 24.4.2 # Use the latest stable tag
+    hooks:
+      - id: black
+        language_version: python3 # Ensure it uses a compatible python version
+        args: [--config=./pyproject.toml] # Explicitly point to config if needed
+
+  # isort for import sorting (compatible with black)
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2 # Use the latest stable tag
+    hooks:
+      - id: isort
+        name: isort (python)
+        args: [--settings-path=./pyproject.toml] # Point to config
+
+  # Pylint for linting (can be slow on large codebases)
+  - repo: https://github.com/pylint-dev/pylint
+    rev: v3.1.0 # Use the latest stable tag (check pylint releases)
+    hooks:
+      - id: pylint
+        name: pylint
+        entry: pylint
+        language: system # Use the pylint installed in the environment
+        types: [python]
+        args: [
+            "--rcfile=pyproject.toml", # Tell pylint to load config from pyproject.toml
+            # Optional: Add --fail-under=8.0 to fail commit if score is low
+          ]
+        # If pylint requires plugins not installed globally, add them here:
+        # additional_dependencies: ['pylint-plugin1']
+
+# Optional: Configure flake8 as an alternative or additional linter
+#  - repo: https://github.com/pycqa/flake8
+#    rev: '7.0.0' # Use the latest stable tag
+#    hooks:
+#      - id: flake8
+#        # Optional: configure flake8 via .flake8 or setup.cfg or pyproject.toml ([tool.flake8])
+#        # additional_dependencies: [flake8-bugbear]
