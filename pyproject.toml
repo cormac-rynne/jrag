@@ -30,6 +30,7 @@ Repository = "https://github.com/cormac-rynne/jrag/"
 dev = [
     "pytest>=7.0",
     "flake8>=5.0",
+    "flake8-pyproject",
     "black>=22.0",
     "python-semantic-release>=8.0",
     "build>=0.10",
