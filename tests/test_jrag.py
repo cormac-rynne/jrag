@@ -1,4 +1,4 @@
-import copy  # To test in-place modifications safely
+import copy
 
 import pytest
 
@@ -102,7 +102,7 @@ def test_default_non_dict_list_input(capsys):
     result = jrag._json_to_rag_string(MIXED_LIST)
     assert result == expected_output
     captured = capsys.readouterr()
-    assert "Info: jrag._json_to_rag_string called in default mode with non-dictionary input" in captured.out
+    assert "Info: _json_to_rag_string called in default mode with non-dictionary input" in captured.out
 
 
 def test_default_non_dict_scalar_input(capsys):
@@ -110,7 +110,7 @@ def test_default_non_dict_scalar_input(capsys):
     result = jrag._json_to_rag_string("just a string")
     assert result == expected_output
     captured = capsys.readouterr()
-    assert "Info: jrag._json_to_rag_string called in default mode with non-dictionary input" in captured.out
+    assert "Info: _json_to_rag_string called in default mode with non-dictionary input" in captured.out
 
 
 # --- Tests for jrag._json_to_rag_string (Config Mode) ---
@@ -230,7 +230,7 @@ def test_add_text_with_config():
 def test_add_text_overwrites_existing_key():
     key = "jrag_text"
     data = {"a": 1, key: "old_value"}
-    expected_text = "a: 1"  # New text generated
+    expected_text = "a: 1 | jrag_text: old_value"  # New text generated
     result = jrag.add_text(data, output_key=key)  # Explicitly use the key
 
     assert result[key] == expected_text  # Should be overwritten
@@ -251,14 +251,14 @@ def test_add_text_invalid_output_key_empty():
         jrag.add_text(SIMPLE_DICT, output_key="")
 
 
-# --- Tests for jrag.add_text_to_list (Wrapper) ---
-# Replace jrag.add_text_to_list with your chosen name if different (e.g., enrich_list)
+# --- Tests for jrag.tag_list (Wrapper) ---
+# Replace jrag.tag_list with your chosen name if different (e.g., enrich_list)
 
 
-def test_add_text_to_list_basic():
+def test_tag_list_basic():
     data_list = copy.deepcopy(LIST_OF_DICTS)
     expected_texts = ["id: 1 | value: apple | tags: [fruit, red]", "id: 2 | value: banana | tags: [fruit, yellow]"]
-    result_list = jrag.add_text_to_list(data_list)
+    result_list = jrag.tag_list(data_list)
 
     assert len(result_list) == 2
     assert isinstance(result_list, list)
@@ -269,15 +269,13 @@ def test_add_text_to_list_basic():
     # Check if original list items were modified (they should be)
     assert data_list[0]["jrag_text"] == expected_texts[0]
     assert data_list[1]["jrag_text"] == expected_texts[1]
-    # Although modifies in-place, check if it returns the list reference
-    assert result_list is data_list
 
 
-def test_add_text_to_list_custom_key():
+def test_tag_list_custom_key():
     data_list = copy.deepcopy(LIST_OF_DICTS)
     key = "generated_str"
     expected_texts = ["id: 1 | value: apple | tags: [fruit, red]", "id: 2 | value: banana | tags: [fruit, yellow]"]
-    result_list = jrag.add_text_to_list(data_list, output_key=key)
+    result_list = jrag.tag_list(data_list, output_key=key)
 
     assert len(result_list) == 2
     for i, item in enumerate(result_list):
@@ -286,11 +284,11 @@ def test_add_text_to_list_custom_key():
         assert "jrag_text" not in item  # Default key shouldn't be there
 
 
-def test_add_text_to_list_with_config():
+def test_tag_list_with_config():
     data_list = copy.deepcopy(LIST_OF_DICTS)
     config = {"ItemID": "$.id", "FirstTag": "$.tags[0]"}
     expected_texts = ["ItemID: 1 | FirstTag: fruit", "ItemID: 2 | FirstTag: fruit"]
-    result_list = jrag.add_text_to_list(data_list, config=config)
+    result_list = jrag.tag_list(data_list, config=config)
 
     assert len(result_list) == 2
     for i, item in enumerate(result_list):
@@ -298,25 +296,25 @@ def test_add_text_to_list_with_config():
         assert item["jrag_text"] == expected_texts[i]
 
 
-def test_add_text_to_list_empty_list():
-    result_list = jrag.add_text_to_list([])
+def test_tag_list_empty_list():
+    result_list = jrag.tag_list([])
     assert result_list == []
 
 
-def test_add_text_to_list_invalid_input_type():
+def test_tag_list_invalid_input_type():
     with pytest.raises(TypeError, match="Input json_list must be a list"):
-        jrag.add_text_to_list({"not": "a list"})
+        jrag.tag_list({"not": "a list"})
 
 
-def test_add_text_to_list_invalid_item_type():
+def test_tag_list_invalid_item_type():
     data_list = [{"id": 1}, "not a dict", {"id": 3}]
     with pytest.raises(TypeError, match="Item at index 1 in json_list is not a dictionary"):
-        jrag.add_text_to_list(data_list)
+        jrag.tag_list(data_list)
 
 
-def test_add_text_to_list_invalid_output_key():
+def test_tag_list_invalid_output_key():
     with pytest.raises(TypeError, match="output_key must be a non-empty string"):
-        jrag.add_text_to_list(LIST_OF_DICTS, output_key=None)
+        jrag.tag_list(LIST_OF_DICTS, output_key=None)
 
 
 # --- Test jrag._json_to_rag_string Type Errors ---

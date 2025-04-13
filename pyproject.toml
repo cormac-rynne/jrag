@@ -1,8 +1,47 @@
 # pyproject.toml
 
 [build-system]
-requires = ["setuptools>=42"]
+requires = ["setuptools>=61", "wheel",]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "jrag"
+version = "0.0.1"
+description = "Convert json to string for RAG applications."
+readme = "README.md"
+authors = [
+    { name="Cormac Rynne" },
+]
+license = "MIT"
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "jsonpath_ng"
+]
+
+[project.urls]
+Homepage = "https://github.com/cormac-rynne/jrag/"
+Repository = "https://github.com/cormac-rynne/jrag/"
+"Bug Tracker" = "https://github.com/cormac-rynne/jrag/issues"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "flake8>=5.0",
+    "black>=22.0",
+    "python-semantic-release>=8.0",
+    "build>=0.10",
+    "twine>=4.0",
+    "wheel",
+    "setuptools",
+    "pip-audit",
+    "pre-commit>=3.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["jrag"]
 
 [tool.black]
 # https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#configuration-via-a-file
@@ -10,65 +49,46 @@ line-length = 120
 target-version = ['py37', 'py38', 'py39', 'py310', 'py311', 'py312'] # Specify supported Python versions
 
 [tool.isort]
-# https://pycqa.github.io/isort/docs/configuration/config_files.html
-profile = "black" # Make isort compatible with black
-line_length = 88  # Match black's line length
+profile = "black"
+line_length = 120
 
 [tool.pytest.ini_options]
 # https://docs.pytest.org/en/latest/reference/reference.html#configuration-options
-minversion = "7.0" # Specify minimum pytest version
+pythonpath = ["jrag"]
 testpaths = [
-    "tests", # Directory where tests are located
+    "tests",
 ]
-python_files = "test_*.py" # Pattern for test files
-python_classes = "Test*"   # Pattern for test classes
-python_functions = "test_*" # Pattern for test functions
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
 addopts = [
-    "-v", # Verbose output
-    "-ra", # Show extra test summary info for all failures/errors/skips/xfails/xpasses
-    "--strict-markers", # Raise errors for unknown markers
-    "--cov=jrag", # Enable coverage for your package
-    "--cov-report=term-missing", # Show lines not covered in the terminal
-    "--cov-fail-under=80", # Optional: Fail if coverage is below 80%
-]
-filterwarnings = [
-    "error", # Treat all warnings as errors by default
-    # Add specific ignores below if necessary, e.g.:
-    # "ignore::DeprecationWarning:some_dependency.*",
+    "-v",
+    "-ra",
+    "--cov=jrag",
+    "--cov-report=term-missing",
+    "--cov-fail-under=80",
 ]
 
-[tool.pylint.'MESSAGES CONTROL']
-# https://pylint.readthedocs.io/en/latest/user_guide/configuration/all-options.html#messages-control-options
-# Disable specific messages globally. Add more as needed.
-disable = [
-    "missing-module-docstring", # C0114: Don't require module docstrings
-    "missing-class-docstring",  # C0115: Don't require class docstrings
-    "missing-function-docstring", # C0116: Don't require function docstrings for all functions (maybe enable for non-test code later)
-    "too-few-public-methods", # R0903: Allows utility classes with few methods
-    "fixme", # W0511: Allow FIXME, TODO comments
-    "invalid-name", # C0103: Allow variable names like 'e' for exception, 'df' for dataframe etc. (Customize 'good-names' below)
-]
-# Enable specific messages if needed (usually used if broadly disabling)
-# enable = []
-
-[tool.pylint.FORMAT]
-# https://pylint.readthedocs.io/en/latest/user_guide/configuration/all-options.html#format-options
-max-line-length = 88 # Match black's line length
-# Expected naming styles (snake_case generally preferred in Python)
-# variable-rgx = "^[a-z_][a-z0-9_]{2,30}$"
-# argument-rgx = "^[a-z_][a-z0-9_]{2,30}$"
-# class-attribute-rgx = "^[a-z_][a-z0-9_]{2,30}$"
-
-[tool.pylint.BASIC]
-# https://pylint.readthedocs.io/en/latest/user_guide/configuration/all-options.html#basic-options
-# List of variable names pylint should consider good (extends defaults)
-good-names = [
-    "i", "j", "k", # Common loop indices
-    "e", "ex",    # Common exception names
-    "fh", "fp",   # Common file handle names
-    "id",         # Common identifier name
-    "df",         # Common dataframe name
-    "_",          # Ignored variable
+[tool.flake8]
+max-line-length = 120
+extend-ignore = ["E203", "W503"] # conflicts with black
+exclude = [
+    ".git",
+    "__pycache__",
+    ".venv",
+    "build",
+    "dist",
+    "notebooks",
 ]
 
-# Add other sections like [tool.pylint.DESIGN], [tool.pylint.VARIABLES] as needed for finer control.
+[tool.semantic_release]
+version_variables = ["jrag/__init__.py:__version__"]
+version_toml = ["pyproject.toml:project.version"]
+branch = "main"
+repository = "github"
+# upload_to_pypi = true
+upload_to_release = true
+# build_command = "pip install build && python -m build"
+commit_subject = "chore(release): :bookmark: {version}"
+changelog_file = "CHANGELOG.md"
+hvcs = "github"

@@ -1,0 +1,68 @@
+# .github/workflows/release.yml
+name: Release and Publish
+
+on:
+  workflow_dispatch
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  release:
+    name: Create Release and Publish to PyPI
+    runs-on: ubuntu-latest
+    # Prevent duplicate releases on merge commits from PRs
+    # if: github.ref == 'refs/heads/main' && !startsWith(github.event.head_commit.message, 'Merge pull request')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install .[dev] # Install semantic-release and build tools
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Determine Version and Create GitHub Release (Dry Run)
+        id: dry_run_release
+        if: true
+        run: semantic-release version --print
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Determine Version and Create GitHub Release (Actual)
+        id: create_release
+        run: semantic-release version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build package
+        run: |
+          # semantic-release version command above doesn't run the build, so we do it manually
+          python -m build
+
+      - name: Verify built distributions (Optional but Recommended)
+        run: |
+          ls -l dist/
+          # twine check verifies package metadata rendering on PyPI
+          twine check dist/*
+
+      - name: Publish package to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_PROD }}
