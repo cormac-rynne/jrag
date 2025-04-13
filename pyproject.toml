@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "jrag"
-version = "0.0.0"
+version = "0.0.1"
 description = "Convert json to string for RAG applications."
 readme = "README.md"
 authors = [
