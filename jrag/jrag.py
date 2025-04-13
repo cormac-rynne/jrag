@@ -1,5 +1,5 @@
 """
-Core conversion logic for the 'jrag' library.
+Core conversion logic for the 'jRAG' library.
 
 This module provides functions to flatten complex Python objects (dictionaries,
 lists, scalars, representing JSON-like data) into single-string representations.
