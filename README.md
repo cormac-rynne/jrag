@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./images/jrag_logo.png" width="300" height="300" alt="jrag logo"><br>
+<img src="https://raw.githubusercontent.com/cormac-rynne/jrag/main/images/jrag_logo.png" width="300" height="300" alt="jrag logo"><br>
 <h3><strong>jRAG</strong></h3>
 A lightweight Python library to flatten and extract text from JSON-like data, suitable for Retrieval-Augmented Generation (RAG) pipelines.
 </p>
