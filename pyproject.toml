@@ -29,6 +29,7 @@ Repository = "https://github.com/cormac-rynne/jrag/"
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0",
+    "pytest-cov",
     "flake8>=5.0",
     "flake8-pyproject",
     "black>=22.0",
